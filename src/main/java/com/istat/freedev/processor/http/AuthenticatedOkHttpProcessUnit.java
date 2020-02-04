@@ -7,7 +7,7 @@ import com.istat.freedev.processor.interfaces.RunnableDispatcher;
 import com.istat.freedev.processor.utils.ProcessUnit;
 
 public abstract class AuthenticatedOkHttpProcessUnit extends ProcessUnit {
-    public final static String PID_AUTHETICATION_PROCESS = "authentication_pid" + System.currentTimeMillis();
+    public final static String PID_AUTHENTICATION_PROCESS = "authentication_pid" + System.currentTimeMillis();
 
     public AuthenticatedOkHttpProcessUnit() {
         this("AuthenticatedOkHttpProcessUnit:" + System.currentTimeMillis(), null);
@@ -46,10 +46,12 @@ public abstract class AuthenticatedOkHttpProcessUnit extends ProcessUnit {
         OkHttpProcess authenticationProcess;
         try {
             authenticationProcess = proceedAuthentication();
+            if (authenticationProcess == null) {
+                throw new IllegalStateException("The authetication process was neither created nor started.");
+            }
         } catch (Exception e) {
             ((AuthenticatedOkHttpProcess) process).resume(e);
             return;
-
         }
         authenticationProcess.then(new Process.PromiseCallback() {
             @Override
@@ -82,17 +84,20 @@ public abstract class AuthenticatedOkHttpProcessUnit extends ProcessUnit {
     }
 
     OkHttpProcess proceedAuthentication() throws Exception {
-        Process process = getProcessManager().getProcessById(PID_AUTHETICATION_PROCESS);
+        Process process = getProcessManager().getProcessById(PID_AUTHENTICATION_PROCESS);
         if (process instanceof OkHttpProcess) {
             //si un process avec le PID d'authetification est déja en cours, on le retourne simplement.
             return (OkHttpProcess) process;
         }
         OkHttpProcess newAuthenticationProcess = onCreateAuthenticationProcess();
+        if (newAuthenticationProcess == null) {
+            return null;
+        }
         if (!newAuthenticationProcess.isRunning()) {
             //Si le process retourné n'a pas été demarré, le démarrer automatiquement
-            onExecuteAuthenticationProcess(PID_AUTHETICATION_PROCESS, newAuthenticationProcess);
-        } else if (!PID_AUTHETICATION_PROCESS.equals(newAuthenticationProcess.getId())) {
-            throw new IllegalStateException("The supplyed AuthenticationProcess you have created is already started but with incorrect PID: found=" + newAuthenticationProcess.getId() + "; must be=" + PID_AUTHETICATION_PROCESS);
+            onExecuteAuthenticationProcess(PID_AUTHENTICATION_PROCESS, newAuthenticationProcess);
+        } else if (!PID_AUTHENTICATION_PROCESS.equals(newAuthenticationProcess.getId())) {
+            throw new IllegalStateException("The supplied AuthenticationProcess you have created is already started but with incorrect PID: found=" + newAuthenticationProcess.getId() + "; must be=" + PID_AUTHENTICATION_PROCESS);
         }
         return newAuthenticationProcess;
     }

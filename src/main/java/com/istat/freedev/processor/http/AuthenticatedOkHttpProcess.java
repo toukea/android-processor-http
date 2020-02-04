@@ -5,22 +5,26 @@ import okhttp3.Response;
 
 public abstract class AuthenticatedOkHttpProcess extends OkHttpProcess {
     public final static int STATE_AUTHENTICATION_FAILURE = 401;
+    boolean authenticationRequired = true;
+    int authenticationFailureCount = 0;
 
     @Override
     protected void enqueueRequest() {
-        if (isAuthenticated()) {
+        if (isAuthenticated() || !isAuthenticationRequired()) {
             super.enqueueRequest();
         } else {
             pause();
-            dispatchState(STATE_AUTHENTICATION_FAILURE);
+            authenticationFailureCount++;
+            notifyStateChanged(STATE_AUTHENTICATION_FAILURE);
         }
     }
 
     @Override
     protected boolean onHttpResponse(Call call, Response response) {
-        if (response.code() == STATE_AUTHENTICATION_FAILURE) {
+        if (isAuthenticationRequired() && response.code() == STATE_AUTHENTICATION_FAILURE) {
             // il ya un probleme d'authentification
-            dispatchState(STATE_AUTHENTICATION_FAILURE);
+            authenticationFailureCount++;
+            notifyStateChanged(STATE_AUTHENTICATION_FAILURE);
             return true;
         }
         return false;
@@ -28,7 +32,7 @@ public abstract class AuthenticatedOkHttpProcess extends OkHttpProcess {
 
     @Override
     protected void onResume() {
-        enqueueRequest();
+        super.enqueueRequest();
     }
 
     void resume(Throwable exception) {
@@ -45,4 +49,20 @@ public abstract class AuthenticatedOkHttpProcess extends OkHttpProcess {
      * @return
      */
     protected abstract boolean isAuthenticated();
+
+    protected final void setAuthenticationRequired(boolean required) {
+        this.authenticationRequired = required;
+    }
+
+    public boolean isAuthenticationRequired() {
+        return authenticationRequired;
+    }
+
+    public int getAuthenticationFailureCount() {
+        return authenticationFailureCount;
+    }
+
+    public boolean hasAutheticationFailure() {
+        return authenticationFailureCount > 0;
+    }
 }
