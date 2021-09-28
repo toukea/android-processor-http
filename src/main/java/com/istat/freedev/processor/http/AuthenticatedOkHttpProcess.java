@@ -62,7 +62,7 @@ public abstract class AuthenticatedOkHttpProcess extends OkHttpProcess {
         return authenticationFailureCount;
     }
 
-    public boolean hasAutheticationFailure() {
+    public boolean hasAuthenticationFailure() {
         return authenticationFailureCount > 0;
     }
 }

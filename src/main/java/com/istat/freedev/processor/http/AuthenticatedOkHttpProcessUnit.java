@@ -24,6 +24,11 @@ public abstract class AuthenticatedOkHttpProcessUnit extends ProcessUnit {
 
     private final ProcessListener mProcessListener = new ProcessListener() {
         @Override
+        public void onProcessEnqueued(Process process, String id) {
+
+        }
+
+        @Override
         public void onProcessStarted(Process process, String id) {
 
         }
@@ -64,7 +69,7 @@ public abstract class AuthenticatedOkHttpProcessUnit extends ProcessUnit {
             public void onPromise(Void data) {
                 process.cancel();
             }
-        }).failed(new Process.PromiseCallback<Throwable>() {
+        }).failure(new Process.PromiseCallback<Throwable>() {
             @Override
             public void onPromise(Throwable data) {
                 ((AuthenticatedOkHttpProcess) process).resume(data);
