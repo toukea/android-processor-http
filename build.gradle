@@ -8,8 +8,6 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -33,5 +31,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     implementation project(path: ':android-processor')
     implementation 'com.squareup.okhttp3:okhttp:4.0.1'
-    compile project(path: ':android-istat-tools')
+    api project(path: ':android-istat-tools')
 }
